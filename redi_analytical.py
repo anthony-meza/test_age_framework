@@ -308,7 +308,7 @@ def redi_analytical_LGM(ds,kappa,chanloc,v,vpac,vatlll,vpacll,modelh,ll,ntime,dt
     return C,Cpac,Cll,Cpacll,diffusion_term_atl,meridional_adv_atl,diffusion_term_pac,meridional_adv_pac,wll
 
 
-def redi_analytical_LGM2(ds,kappa,chanloc,v,vpac,vatlll,vpacll,modelh,ll,kappaz,ntime,dt):
+def redi_analytical_LGM2(ds,kappa,chanloc,v,vpac,vatlll,vpacll,La,Lp,modelh,ll,kappaz,ntime,dt):
     from scipy import signal
     import numpy as np
     #ntime=1080000
@@ -377,20 +377,20 @@ def redi_analytical_LGM2(ds,kappa,chanloc,v,vpac,vatlll,vpacll,modelh,ll,kappaz,
     #kappaz=2*10**(-5)*np.ones(ny)#+10**-2*(1+np.tanh((-4000+ll+30)/30))/2+(2*10**-4+2*10**-3*(10**((4000-ll-4000)/2000)))*(1-np.tanh((-4000+ll+2000)/200))/2
     
     
-    maxll=122
+    maxll=114
     #maxll=122
     
     
     modelhll2=modelhll.copy()#(modelh+modelhll)/2
-    modelhll2[maxll-1:]=999999
+    modelhll2[maxll-1:]=9999999
     
     modelhll3=modelhll.copy()#(modelh+modelhll)/2
-    modelhll3[modelhll<70]=99999
-    modelhll3[maxll-1:]=999999
+    modelhll3[modelhll<70]=999999
+    modelhll3[maxll-1:]=9999999
     
     modelh2=modelh.copy()
     #modelh2[modelhll<200]=200
-    modelh2[maxll-1:]=999999
+    modelh2[maxll-1:]=9999999
     
     dy=108086#ds.dyG[10,10].values
     timestep=dt*24*3600*365
@@ -398,34 +398,34 @@ def redi_analytical_LGM2(ds,kappa,chanloc,v,vpac,vatlll,vpacll,modelh,ll,kappaz,
         atlllterm=-watlll_down[1:]*Cold[1:-1]/modelh[1:-1]-watlll_up[1:]*Coldll2[1:-1]/modelhll2[1:-1]
         atlllterm[maxll:]=0
         Cnew[1:-1]=(Cold[1:-1]+
-                timestep*((kappa[2:]*atlconst[2:]*Cold[2:]*(modelh[1:-1]+modelh[2:])/modelh[2:]/2
-                           -kappa[2:]*atlconst[2:]*Cold[1:-1]*(modelh[1:-1]+modelh[2:])/modelh[1:-1]/2- 
-                           kappa[1:-1]*Cold[1:-1]*(modelh[1:-1]+modelh[0:-2])/modelh[1:-1]/2
-                           +kappa[1:-1]*Cold[0:-2]*(modelh[1:-1]+modelh[0:-2])/modelh[0:-2]/2)/dy**2
+                timestep*((kappa[2:]*La[2:]*atlconst[2:]*Cold[2:]*(modelh[1:-1]+modelh[2:])/modelh[2:]/2
+                           -kappa[2:]*La[2:]*atlconst[2:]*Cold[1:-1]*(modelh[1:-1]+modelh[2:])/modelh[1:-1]/2- 
+                           kappa[1:-1]*La[1:-1]*Cold[1:-1]*(modelh[1:-1]+modelh[0:-2])/modelh[1:-1]/2
+                           +kappa[1:-1]*La[1:-1]*Cold[0:-2]*(modelh[1:-1]+modelh[0:-2])/modelh[0:-2]/2)/dy**2
                           -(atlconst[2:]*v[2:]*(Cold[2:]+Cold[1:-1])/(modelh[2:]+modelh[1:-1])
                             -v[1:-1]*(Cold[1:-1]+Cold[0:-2])/(modelh[1:-1]+modelh[0:-2]))/dy
                          -pacconst[2:]*vpac[chanloc]*(Cpacold[chanloc+1]+Cpacold[chanloc])/dy/2/modelh[chanloc]
-                          +pacconst[2:]*(kappa[2:]*Cpacold[2:]-kappa[2:]*Cold[1:-1])/dy**2
+                          +pacconst[2:]*(kappa[2:]*La[2:]*Cpacold[2:]-kappa[2:]*La[2:]*Cold[1:-1])/dy**2
                            -watl_down[1:]*Cold[1:-1]/modelh[1:-1]
                           +atlllterm
                           +kappav*aatl*np.exp(watl[72]*(-4000+modelh[1:-1]+ll[1:-1])/kappav)
-                          -kappaz[1:-1]*(Cold[1:-1]/modelh2[1:-1]-Coldll2[1:-1]/modelhll2[1:-1])/modelhll3[1:-1]))
+                          -kappaz[1:-1]*La[1:-1]*(Cold[1:-1]/modelh2[1:-1]-Coldll2[1:-1]/modelhll2[1:-1])/modelhll3[1:-1]))
         
         Cnewll[1:maxll]=(Coldll[1:maxll]+
-                timestep*((kappa[2:maxll+1]*atlconst[2:maxll+1]*Coldll[2:maxll+1]*
+                timestep*((kappa[2:maxll+1]*La[2:maxll+1]*atlconst[2:maxll+1]*Coldll[2:maxll+1]*
                            (modelhll[1:maxll]+modelhll[2:maxll+1])/modelhll[2:maxll+1]/2
-                           -kappa[2:maxll+1]*atlconst[2:maxll+1]*Coldll[1:maxll]*
+                           -kappa[2:maxll+1]*La[2:maxll+1]*atlconst[2:maxll+1]*Coldll[1:maxll]*
                            (modelhll[1:maxll]+modelhll[2:maxll+1])/modelhll[1:maxll]/2- 
-                           kappa[1:maxll]*Coldll[1:maxll]*(modelhll[1:maxll]+modelhll[0:maxll-1])/modelhll[1:maxll]/2
-                           +kappa[1:maxll]*Coldll[0:maxll-1]*(modelhll[1:maxll]+modelhll[0:maxll-1])/modelhll[0:maxll-1]/2)/dy**2
+                           kappa[1:maxll]*La[1:maxll]*Coldll[1:maxll]*(modelhll[1:maxll]+modelhll[0:maxll-1])/modelhll[1:maxll]/2
+                           +kappa[1:maxll]*La[1:maxll]*Coldll[0:maxll-1]*(modelhll[1:maxll]+modelhll[0:maxll-1])/modelhll[0:maxll-1]/2)/dy**2
                           -(atlconst[2:maxll+1]*vatlll[2:maxll+1]*(Coldll[2:maxll+1]+Coldll[1:maxll]
                                                                   )/(modelhll[2:maxll+1]+modelhll[1:maxll])-vatlll[1:maxll]*
                           (Coldll[1:maxll]+Coldll[0:maxll-1])/(modelhll[1:maxll]+modelhll[0:maxll-1]))/dy
                          -pacconst[2:maxll+1]*vpacll[chanloc]*(Coldll[chanloc-1]+Coldll[chanloc])/dy/2/modelhll[chanloc]
-                          +pacconst[2:maxll+1]*(kappa[2:maxll+1]*Cpacoldll[2:maxll+1]-kappa[2:maxll+1]*Coldll[1:maxll]
+                          +pacconst[2:maxll+1]*(kappa[2:maxll+1]*La[2:maxll+1]*Cpacoldll[2:maxll+1]-kappa[2:maxll+1]*La[2:maxll+1]*Coldll[1:maxll]
                                                )/dy**2
                         +watlll_down[1:maxll]*Cold[1:maxll]/modelh[1:maxll]+watlll_up[1:maxll]*Coldll[1:maxll]/modelhll[1:maxll]
-                         +kappaz[1:maxll]*(Cold[1:maxll]/modelh[1:maxll]-Coldll[1:maxll]/modelhll[1:maxll])/modelhll3[1:maxll]))
+                         +kappaz[1:maxll]*La[1:maxll]*(Cold[1:maxll]/modelh[1:maxll]-Coldll[1:maxll]/modelhll[1:maxll])/modelhll3[1:maxll]))
         
     
         pacllterm=wpacll_up[1:]*Cpacoldll2[1:-1]/modelhll2[1:-1]
@@ -440,7 +440,7 @@ def redi_analytical_LGM2(ds,kappa,chanloc,v,vpac,vatlll,vpacll,modelh,ll,kappaz,
                             -wpac_up[1:]*Cpacold[1:-1]/modelh[1:-1]
                              +pacllterm
                              +wpacll_down[1:]*Cpacold[1:-1]/modelh[1:-1]
-                             -kappaz[1:-1]*(Cpacold[1:-1]/modelh2[1:-1]-Cpacoldll2[1:-1]
+                             -kappaz[1:-1]*Lp[1:-1]*(Cpacold[1:-1]/modelh2[1:-1]-Cpacoldll2[1:-1]
                                                /modelhll2[1:-1])/modelhll3[1:-1]))
         
         Cpacnewll[1:maxll]=(Cpacoldll[1:maxll]+
@@ -457,7 +457,7 @@ def redi_analytical_LGM2(ds,kappa,chanloc,v,vpac,vatlll,vpacll,modelh,ll,kappaz,
                           #  +wpac_down[1:]*Cpacold[1:-1]/modelh[1:-1]
                              -wpacll_down[1:maxll]*Cpacold[1:maxll]/modelh[1:maxll]
                              -wpacll_up[1:maxll]*Cpacoldll[1:maxll]/modelhll[1:maxll]
-                             +kappaz[1:maxll]*(Cpacold[1:maxll]/modelh[1:maxll]-Cpacoldll[1:maxll]
+                             +kappaz[1:maxll]*Lp[1:maxll]*(Cpacold[1:maxll]/modelh[1:maxll]-Cpacoldll[1:maxll]
                                                /modelhll[1:maxll])/modelhll3[1:maxll]))
         Cnew[0]=0
         Cnewll[0]=0
