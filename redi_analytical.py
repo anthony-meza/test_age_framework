@@ -15,51 +15,39 @@ def redi_analytical(ds,kappa,chanloc,v,vpac,La,Lp,modelh,ntime,dt):
     aatl=Cold[1:-1]
     apac=Cpacold[1:-1]
 
-    #v=(-6*np.ones(144)*10**6-np.arange(0,144)*10**5)/5000000#modern
-    #v=(-6*np.ones(144)*10**6-np.arange(0,144)*7*10**4)/5000000 #LGM
-    #vpac=((9.84*np.ones(144)*10**6-np.arange(0,144)*6*10**4)/10000000)#modern
-    #vpac=((6*np.ones(144)*10**6-np.arange(0,144)*5*10**4)/10000000)#LGM
-    #vpac[vpac<0]=0
-    #v[0:chanloc]=0
-    #v[0:chanloc]=((v[chanloc]*5000000+vpac[chanloc]*10000000)*np.arange(0,24)/24)/15000000
+
     watl=-np.diff(v)/ds.dyG[10,10].values
     watl[chanloc-1]=0
     wpac=-np.diff(vpac)/ds.dyG[10,10].values
-    atlconst=np.ones((ny))
-    atlconst[0:chanloc]=1
-    atlconst[chanloc+1:]=1
+
     pacconst=np.zeros((ny))
     pacconst[chanloc]=1
-    pacconst2=np.ones((ny))
-    pacconst2[0:chanloc]=1
-    pacconst2[chanloc+1:]=1
+
     t=np.arange(0,ntime)
-    #modelh=(4000-1000*(np.tanh((np.arange(0,144)-14)/5)+1)/2-100)
-    #modelh=(4000-800*(np.tanh((np.arange(0,144)-14)/5)+1)/2-100)
-    #kappa=kappa0*np.ones(ny)
+
     kappav=2*10**-5
 
     dy=108086
     timestep=dt*24*3600*365
     for time in range(1, ntime):
         Cnew[1:-1]=(Cold[1:-1]+
-                timestep*((kappa[2:]*La[2:]*atlconst[2:]*Cold[2:]*(modelh[1:-1]+modelh[2:])/modelh[2:]/2
-                           -kappa[2:]*La[2:]*atlconst[2:]*Cold[1:-1]*(modelh[1:-1]+modelh[2:])/modelh[1:-1]/2- 
+                timestep*((kappa[2:]*La[2:]*Cold[2:]*(modelh[1:-1]+modelh[2:])/modelh[2:]/2
+                           -kappa[2:]*La[2:]*Cold[1:-1]*(modelh[1:-1]+modelh[2:])/modelh[1:-1]/2- 
                            kappa[1:-1]*La[1:-1]*Cold[1:-1]*(modelh[1:-1]+modelh[0:-2])/modelh[1:-1]/2
                            +kappa[1:-1]*La[1:-1]*Cold[0:-2]*(modelh[1:-1]+modelh[0:-2])/modelh[0:-2]/2)/dy**2
-                          -(atlconst[2:]*v[2:]*(Cold[2:]+Cold[1:-1])/modelh[2:]-v[1:-1]*(Cold[1:-1]+Cold[0:-2])/modelh[1:-1])/dy/2
+                          -(v[2:]*(Cold[2:]+Cold[1:-1])/modelh[2:]-v[1:-1]*(Cold[1:-1]+Cold[0:-2])/modelh[1:-1])/dy/2
                          -pacconst[2:]*vpac[chanloc]*(Cold[chanloc-1]+Cold[chanloc])/dy/2/modelh[chanloc]
                           +pacconst[2:]*(kappa[2:]*La[2:]*Cpacold[2:]-kappa[2:]*La[2:]*Cold[1:-1])/dy**2
-                           -watl[1:]*Cold[1:-1]/modelh[1:-1]+kappav*La[1:-1]*aatl*np.exp(watl[72]*(-4000+modelh[1:-1])/kappav)))#
+                           -watl[1:]*Cold[1:-1]/modelh[1:-1]+kappav*La[1:-1]*aatl*np.exp(watl[72]/La[72]*(-4000+modelh[1:-1])/kappav)))#
     
         Cpacnew[1:-1]=(Cpacold[1:-1]+
-                   timestep*((kappa[2:]*Lp[2:]*pacconst2[2:]*Cpacold[2:]*(modelh[1:-1]+modelh[2:])/modelh[2:]/2
-                              -kappa[2:]*Lp[2:]*pacconst2[2:]*Cpacold[1:-1]*(modelh[1:-1]+modelh[2:])/modelh[1:-1]/2-
+                   timestep*((kappa[2:]*Lp[2:]*Cpacold[2:]*(modelh[1:-1]+modelh[2:])/modelh[2:]/2
+                              -kappa[2:]*Lp[2:]*Cpacold[1:-1]*(modelh[1:-1]+modelh[2:])/modelh[1:-1]/2-
                               kappa[1:-1]*Lp[1:-1]*Cpacold[1:-1]*(modelh[1:-1]+modelh[0:-2])/modelh[1:-1]/2
                               +kappa[1:-1]*Lp[1:-1]*Cpacold[0:-2]*(modelh[1:-1]+modelh[0:-2])/modelh[0:-2]/2)/dy**2
                             -(vpac[2:]*(Cpacold[2:]+Cpacold[1:-1])/modelh[2:]-vpac[1:-1]*
                               (Cpacold[1:-1]+Cpacold[0:-2])/modelh[1:-1])/dy/2
-                            -wpac[1:]*Cpacold[1:-1]/modelh[1:-1]+kappav*Lp[1:-1]*apac*np.exp(wpac[72]*(-4000+modelh[1:-1])/kappav)))#
+                            -wpac[1:]*Cpacold[1:-1]/modelh[1:-1]+kappav*Lp[1:-1]*apac*np.exp(wpac[72]/Lp[72]*(-4000+modelh[1:-1])/kappav)))#
         Cnew[0]=0
         Cnew[-1]=modelh[-1]
         Cpacnew[-1]=Cpacnew[-2]
@@ -67,10 +55,10 @@ def redi_analytical(ds,kappa,chanloc,v,vpac,La,Lp,modelh,ntime,dt):
         Cpacold=Cpacnew
         Cpacold[0:chanloc]=Cold[0:chanloc]
         timeend=time-ntime+40000
-        aatl=(Cold[1:-1]-Cs[1:-1]*modelh[1:-1])*(watl[72]/kappav)/(-modelh[1:-1]+kappav/watl[72]*(
-            np.exp(watl[72]*(-4000+modelh[1:-1])/kappav)-np.exp(watl[72]*(-4000)/kappav)))
-        apac=Cpacold[1:-1]*(wpac[72]/kappav)/(-modelh[1:-1]+kappav/wpac[72]*(np.exp(wpac[72]*(-4000+modelh[1:-1])/kappav)-  
-                                                                             np.exp(wpac[72]*(-4000)/kappav)))
+        aatl=(Cold[1:-1]-Cs[1:-1]*modelh[1:-1])*(watl[72]/La[72]/kappav)/(-modelh[1:-1]+kappav*La[72]/watl[72]*(
+            np.exp(watl[72]/La[72]*(-4000+modelh[1:-1])/kappav)-np.exp(watl[72]/La[72]*(-4000)/kappav)))
+        apac=Cpacold[1:-1]*(wpac[72]/Lp[72]/kappav)/(-modelh[1:-1]+kappav*Lp[72]/wpac[72]*(np.exp(wpac[72]/Lp[72]*(-4000+modelh[1:-1])/kappav)-  
+                                                                             np.exp(wpac[72]/Lp[72]*(-4000)/kappav)))
         acheck[time]=aatl[72]
         if timeend>=0:
             C[:,timeend]=Cnew
@@ -102,51 +90,39 @@ def redi_analytical_AABW(ds,kappa,chanloc,v,vpac,La,Lp,modelh,ntime,dt):
     apac=Cpacold[1:-1]
     Cs=np.zeros(ny)
     Cs[0:8]=np.ones(8)
-    #v=(-6*np.ones(144)*10**6-np.arange(0,144)*10**5)/5000000#modern
-    #v=(-6*np.ones(144)*10**6-np.arange(0,144)*7*10**4)/5000000 #LGM
-    #vpac=((9.84*np.ones(144)*10**6-np.arange(0,144)*6*10**4)/10000000)#modern
-    #vpac=((6*np.ones(144)*10**6-np.arange(0,144)*5*10**4)/10000000)#LGM
-    #vpac[vpac<0]=0
-    #v[0:chanloc]=0
-    #v[0:chanloc]=((v[chanloc]*5000000+vpac[chanloc]*10000000)*np.arange(0,24)/24)/15000000
+
     watl=-np.diff(v)/ds.dyG[10,10].values
     watl[chanloc-1]=0
     wpac=-np.diff(vpac)/ds.dyG[10,10].values
-    atlconst=np.ones((ny))*1
-    atlconst[0:chanloc]=1
-    atlconst[chanloc+1:]=1
+
     pacconst=np.zeros((ny))
     pacconst[chanloc]=1
-    pacconst2=np.ones((ny))*1
-    pacconst2[0:chanloc]=1
-    pacconst2[chanloc+1:]=1
+
     t=np.arange(0,ntime)
-    #modelh=(4000-1000*(np.tanh((np.arange(0,144)-14)/5)+1)/2-100)
-    #modelh=(4000-800*(np.tanh((np.arange(0,144)-14)/5)+1)/2-100)
-    #kappa=kappa0*np.ones(ny)
+
     kappav=2*10**-5
 
     dy=108086
     timestep=dt*24*3600*365
     for time in range(1, ntime):
         Cnew[1:-1]=(Cold[1:-1]+
-                timestep*((kappa[2:]*La[2:]*atlconst[2:]*Cold[2:]*(modelh[1:-1]+modelh[2:])/modelh[2:]/2
-                           -kappa[2:]*La[2:]*atlconst[2:]*Cold[1:-1]*(modelh[1:-1]+modelh[2:])/modelh[1:-1]/2- 
+                timestep*((kappa[2:]*La[2:]*Cold[2:]*(modelh[1:-1]+modelh[2:])/modelh[2:]/2
+                           -kappa[2:]*La[2:]*Cold[1:-1]*(modelh[1:-1]+modelh[2:])/modelh[1:-1]/2- 
                            kappa[1:-1]*La[1:-1]*Cold[1:-1]*(modelh[1:-1]+modelh[0:-2])/modelh[1:-1]/2
                            +kappa[1:-1]*La[1:-1]*Cold[0:-2]*(modelh[1:-1]+modelh[0:-2])/modelh[0:-2]/2)/dy**2
-                          -(atlconst[2:]*v[2:]*(Cold[2:]+Cold[1:-1])/modelh[2:]-v[1:-1]*(Cold[1:-1]+Cold[0:-2])/modelh[1:-1])/dy/2
+                          -(v[2:]*(Cold[2:]+Cold[1:-1])/modelh[2:]-v[1:-1]*(Cold[1:-1]+Cold[0:-2])/modelh[1:-1])/dy/2
                          -pacconst[2:]*vpac[chanloc]*(Cold[chanloc-1]+Cold[chanloc])/dy/2/modelh[chanloc]
                           +pacconst[2:]*(kappa[2:]*La[2:]*Cpacold[2:]-kappa[2:]*La[2:]*Cold[1:-1])/dy**2
-                           -watl[1:]*Cold[1:-1]/modelh[1:-1]+kappav*La[1:-1]*aatl*np.exp(watl[72]*(-4000+modelh[1:-1])/kappav)))#
+                           -watl[1:]*Cold[1:-1]/modelh[1:-1]+kappav*La[1:-1]*aatl*np.exp(watl[72]/La[72]*(-4000+modelh[1:-1])/kappav)))#
     
         Cpacnew[1:-1]=(Cpacold[1:-1]+
-                   timestep*((kappa[2:]*Lp[2:]*pacconst2[2:]*Cpacold[2:]*(modelh[1:-1]+modelh[2:])/modelh[2:]/2
-                              -kappa[2:]*Lp[2:]*pacconst2[2:]*Cpacold[1:-1]*(modelh[1:-1]+modelh[2:])/modelh[1:-1]/2-
+                   timestep*((kappa[2:]*Lp[2:]*Cpacold[2:]*(modelh[1:-1]+modelh[2:])/modelh[2:]/2
+                              -kappa[2:]*Lp[2:]*Cpacold[1:-1]*(modelh[1:-1]+modelh[2:])/modelh[1:-1]/2-
                               kappa[1:-1]*Lp[1:-1]*Cpacold[1:-1]*(modelh[1:-1]+modelh[0:-2])/modelh[1:-1]/2
                               +kappa[1:-1]*Lp[1:-1]*Cpacold[0:-2]*(modelh[1:-1]+modelh[0:-2])/modelh[0:-2]/2)/dy**2
                             -(vpac[2:]*(Cpacold[2:]+Cpacold[1:-1])/modelh[2:]-vpac[1:-1]*
                               (Cpacold[1:-1]+Cpacold[0:-2])/modelh[1:-1])/dy/2
-                            -wpac[1:]*Cpacold[1:-1]/modelh[1:-1]+kappav*Lp[1:-1]*apac*np.exp(wpac[72]*(-4000+modelh[1:-1])/kappav)))#
+                            -wpac[1:]*Cpacold[1:-1]/modelh[1:-1]+kappav*Lp[1:-1]*apac*np.exp(wpac[72]/Lp[72]*(-4000+modelh[1:-1])/kappav)))#
         Cnew[0]=modelh[0]
         Cnew[-1]=0
         Cpacnew[-1]=Cpacnew[-2]
@@ -154,10 +130,10 @@ def redi_analytical_AABW(ds,kappa,chanloc,v,vpac,La,Lp,modelh,ntime,dt):
         Cpacold=Cpacnew
         Cpacold[0:chanloc]=Cold[0:chanloc]
         timeend=time-ntime+40000
-        aatl=(Cold[1:-1]-Cs[1:-1]*modelh[1:-1])*(watl[72]/kappav)/(-modelh[1:-1]+kappav/watl[72]*(
-            np.exp(watl[72]*(-4000+modelh[1:-1])/kappav)-np.exp(watl[72]*(-4000)/kappav)))
-        apac=Cpacold[1:-1]*(wpac[72]/kappav)/(-modelh[1:-1]+kappav/wpac[72]*(np.exp(wpac[72]*(-4000+modelh[1:-1])/kappav)-  
-                                                                             np.exp(wpac[72]*(-4000)/kappav)))
+        aatl=(Cold[1:-1]-Cs[1:-1]*modelh[1:-1])*(watl[72]/La[72]/kappav)/(-modelh[1:-1]+kappav*La[72]/watl[72]*(
+            np.exp(watl[72]/La[72]*(-4000+modelh[1:-1])/kappav)-np.exp(watl[72]/La[72]*(-4000)/kappav)))
+        apac=Cpacold[1:-1]*(wpac[72]/Lp[72]/kappav)/(-modelh[1:-1]+kappav*Lp[72]/wpac[72]*(np.exp(wpac[72]/Lp[72]*(-4000+modelh[1:-1])/kappav)-  
+                                                                             np.exp(wpac[72]/Lp[72]*(-4000)/kappav)))
         acheck[time]=aatl[72]
         if timeend>=0:
             C[:,timeend]=Cnew
