@@ -1,7 +1,9 @@
-
 .DS_Store
 .ipynb_checkpoints/*
 *.pdf
 .Rhistory
 Simulations_MITgcm/Single_basin_simulations.zip
 Single_Basin_Simulations_MITgcm/Single_basin_simulations.zip
+*.nc
+.vscode
+Single_basin_simulations
