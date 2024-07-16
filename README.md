@@ -2,6 +2,7 @@
 To download the gridded data in NetCDF format, see the Google Drive [link](https://drive.google.com/drive/folders/1aCYDeeHwNst7RvfWCfaUQSy92Vnmndxt?usp=drive_link)
 The **uncompressed** and **compressed** folders contain the same data, but with different levels of compression. 
 
+The BRIN_Notebooks folder in this repository contains notebooks relevant to the study of 
 # Test_age_framework
 Codes for the paper "A Framework for Constraining Ocean Mixing Rates and Overturning Circulation from Age Tracers". 
 
